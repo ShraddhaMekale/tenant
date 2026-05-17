@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all-egress-except-dns-and-db
+  namespace: acme-corp
+spec:
+  podSelector: {} # Selects all pods in the acme-corp namespace
+  policyTypes:
+  - Egress
+  egress:
+  # 1. Allow egress to DNS (kube-dns/CoreDNS)
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+  
+  # 2. Allow egress to the tenant's specific database (Cloud SQL proxy / external IP)
+  # Assuming the DB is external. If it's internal to the cluster, use pod/namespace selectors.
+  # Here we use an IPBlock representing the specific Cloud SQL instance IP.
+  - ports:
+    - port: 5432
+      protocol: TCP
+    to:
+    - ipBlock:
+        cidr: 10.10.10.10/32 # Replace with the actual Cloud SQL IP of the tenant's instance

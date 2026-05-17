@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  namespace: argocd
+data:
+  # Define the trigger for Degraded or OutOfSync applications
+  trigger.on-degraded-or-out-of-sync: |
+    - description: Application is degraded or out of sync
+      send: [app-alert-slack]
+      when: app.status.health.status == 'Degraded' or app.status.sync.status == 'OutOfSync'
+
+  # Define the Slack notification template
+  template.app-alert-slack: |
+    message: |
+      🚨 *ArgoCD Application Alert* 🚨
+      *Application:* {{.app.metadata.name}}
+      *Environment:* {{.app.spec.destination.namespace}}
+      *Health Status:* {{.app.status.health.status}}
+      *Sync Status:* {{.app.status.sync.status}}
+      
+      *Link:* {{.context.argocdUrl}}/applications/{{.app.metadata.name}}

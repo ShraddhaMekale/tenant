@@ -1,0 +1,51 @@
+name: Onboard New Tenant
+
+on:
+  push:
+    paths:
+      - 'tenants.yaml'
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  onboard-tenant:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Parse tenants.yaml
+        id: parse_tenants
+        run: |
+          # A real implementation would parse the YAML and loop.
+          # For demonstration, we'll assume we found a new tenant 'acme-corp'
+          echo "tenant_name=acme-corp" >> $GITHUB_ENV
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        working-directory: ./task1
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: ./task1
+        # Idempotent apply
+        run: terraform apply -auto-approve -var="tenant_name=${{ env.tenant_name }}" -var="project_id=my-project" -var="cloudsql_instance_name=my-instance" -var="db_password=securepassword"
+
+      - name: Generate K8s Manifests
+        run: |
+          mkdir -p generated-k8s/${{ env.tenant_name }}
+          # Normally we would use a templating tool like Helm or Kustomize here.
+          # We'll copy the base manifests and use sed to replace a placeholder if they were templates.
+          # Here we just copy the pre-made ones.
+          cp -r task1/k8s/* generated-k8s/${{ env.tenant_name }}/
+          
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "Onboard new tenant: ${{ env.tenant_name }}"
+          title: "Infra: Onboard tenant ${{ env.tenant_name }}"
+          body: "Automated PR to onboard new tenant ${{ env.tenant_name }}."
+          branch: "onboard-tenant-${{ env.tenant_name }}"
