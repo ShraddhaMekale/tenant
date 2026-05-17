@@ -30,4 +30,4 @@ spec:
       protocol: TCP
     to:
     - ipBlock:
-        cidr: 10.10.10.10/32 # Replace with the actual Cloud SQL IP of the tenant's instance
+        cidr: 0.0.0.0/0 # IN PRODUCTION: Replace with the actual Cloud SQL IP (run 'gcloud sql instances describe my-instance')
