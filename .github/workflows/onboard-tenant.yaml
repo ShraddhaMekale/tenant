@@ -32,7 +32,7 @@ jobs:
       - name: Terraform Apply
         working-directory: ./task1
         # Idempotent apply
-        run: terraform apply -auto-approve -var="tenant_name=${{ env.tenant_name }}" -var="project_id=my-project" -var="cloudsql_instance_name=my-instance" -var="db_password=securepassword"
+        run: terraform apply -auto-approve -var="tenant_name=${{ env.tenant_name }}" -var="project_id=tenant-hub-project" -var="cloudsql_instance_name=my-instance" -var="db_password=securepassword"
 
       - name: Generate K8s Manifests
         run: |
